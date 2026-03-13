@@ -1,6 +1,6 @@
 # Cellgate Home Assistant Integration
 
-Custom Home Assistant integration for [Cellgate](https://cellgate.com) gate access control systems.
+Custom Home Assistant integration for [Cellgate](https://cell-gate.com/) gate access control systems.
 
 ## Features
 
