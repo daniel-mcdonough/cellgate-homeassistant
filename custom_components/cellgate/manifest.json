@@ -1,0 +1,10 @@
+{
+  "domain": "cellgate",
+  "name": "Cellgate",
+  "codeowners": [],
+  "config_flow": true,
+  "documentation": "",
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "version": "1.0.0"
+}
