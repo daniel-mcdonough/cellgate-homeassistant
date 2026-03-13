@@ -25,10 +25,6 @@ class CellgateApiError(Exception):
 
 class CellgateApiClient:
     """Client for the Cellgate REST API.
-
-    The API has two calling patterns discovered via reverse engineering:
-    - cZf: all fields sent as HTTP headers, no request body
-    - EDf: Bearer auth header + form-urlencoded body
     """
 
     def __init__(
@@ -46,11 +42,6 @@ class CellgateApiClient:
 
     async def authenticate(self) -> dict:
         """Login and obtain JWT token.
-
-        Uses cZf pattern: credentials sent as HTTP headers, no body.
-        Once auth fails (bad credentials), we stop retrying to avoid
-        spamming the server with failed logins. Only an explicit call
-        to authenticate() (e.g. from reauth flow) clears the flag.
         """
         headers = {
             "AuthUsername": self._username,
@@ -71,8 +62,6 @@ class CellgateApiClient:
 
     async def get_map_locations(self) -> list[dict]:
         """Get communities and devices.
-
-        Uses cZf pattern: Authorization + AppVersion as HTTP headers, no body.
         """
         await self._ensure_token()
         headers = {
@@ -88,8 +77,6 @@ class CellgateApiClient:
         self, device_id: str, property_location_id: str
     ) -> dict:
         """Get device details with ports.
-
-        Uses EDf pattern: Bearer auth header + form-urlencoded body.
         """
         body = {
             "DeviceID": device_id,
@@ -102,8 +89,6 @@ class CellgateApiClient:
 
     async def open_gate(self, device_id: str, port_id: str) -> dict:
         """Open a gate (momentary).
-
-        Uses EDf pattern: Bearer auth header + form-urlencoded body.
         """
         body = {
             "GateCommand": "MOMENTARY_OPEN",
@@ -123,12 +108,7 @@ class CellgateApiClient:
         return data
 
     async def _request_cZf(self, endpoint: str, headers: dict) -> dict:
-        """cZf pattern: all fields as HTTP headers, no body.
-
-        This is the unusual pattern discovered via Frida/Blutter reverse
-        engineering. The Dart app's DT::cZf function passes the field Map
-        as the `bdc` named parameter, which gets added to request.headers
-        via addAll(). No request body is sent.
+        """cZf http request pattern: all fields as HTTP headers, no body.
         """
         url = f"{BASE_URL}/{API_PREFIX}/{endpoint}"
         try:
@@ -145,11 +125,7 @@ class CellgateApiClient:
             ) from err
 
     async def _request_EDf(self, endpoint: str, body: dict) -> dict:
-        """EDf pattern: Bearer auth header + form-urlencoded body.
-
-        Standard REST pattern. The Dart app's DT::EDf function passes
-        headers as `bdc` (added to request headers) and body as `pHb`
-        (form-encoded as request body).
+        """EDf http request pattern: Bearer auth header + form-urlencoded body.
         """
         await self._ensure_token()
         url = f"{BASE_URL}/{API_PREFIX}/{endpoint}"
